@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "SkyLander",
+    "slug": "SkyLander",
+    "newArchEnabled": true,
+    "sdkVersion": "52.0.0",
+    "version": "2.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/app.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We need your location to show your current position on the map."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/app.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.mantera.SkyLander",
+      "permissions": ["location, ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "RECORD_AUDIO", "CAMERA", "CAMERA_ROLL", "MICROPHONE"]
+    },
+    "web": {
+      "favicon": "./assets/app.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5d947cb0-ecf6-4da0-ae9d-22a82714eab2"
+      }
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "recordAudioAndroid": true
+        }
+      ]
+    ]
+  }
+}
