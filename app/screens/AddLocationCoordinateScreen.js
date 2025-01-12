@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import MapView, { Marker, UrlTile, Callout } from "react-native-maps";
 import NavbarSearch from "../components/NavbarSearch";
+import NavbarBack from "../components/NavbarBack";
 import * as Location from "expo-location";
 import axios from "axios"; // Import axios for HTTP requests
 
@@ -20,7 +21,6 @@ const AddLocationCoordinateScreen = ({ navigation }) => {
     });
 
     const [address, setAddress] = useState(""); // New state for the address
-
     const [searchText, setSearchText] = useState("");
 
     // Function to search location using OpenStreetMap's Nominatim API
@@ -51,6 +51,7 @@ const AddLocationCoordinateScreen = ({ navigation }) => {
 
     // Function to get the user's current location and move the map
     const moveToCurrentLocation = async () => {
+        console.log(region)
         try {
             const { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== "granted") {
@@ -65,6 +66,8 @@ const AddLocationCoordinateScreen = ({ navigation }) => {
                 latitudeDelta: 0.01,
                 longitudeDelta: 0.01,
             };
+
+            fetchAddress(parseFloat(location.coords.latitude), parseFloat(location.coords.longitude));
 
             setRegion(newRegion);
             // fetchAddress(location.coords.latitude, location.coords.longitude);
@@ -104,12 +107,6 @@ const AddLocationCoordinateScreen = ({ navigation }) => {
         const roundedLatitude = parseFloat(region.latitude.toFixed(6));
         const roundedLongitude = parseFloat(region.longitude.toFixed(6));
 
-        console.log("Latitude:", roundedLatitude);
-        console.log("Longitude:", roundedLongitude);
-        // alert(
-        //     `Location saved!\nLatitude: ${roundedLatitude}\nLongitude: ${roundedLongitude}`
-        // );
-
         navigation.navigate("AddLocationDetailsScreen", {
             latitude: roundedLatitude,
             longitude: roundedLongitude,
@@ -120,20 +117,20 @@ const AddLocationCoordinateScreen = ({ navigation }) => {
     return (
         <View style={styles.container}>
             {/* NavbarSearch replaces TextInput */}
-            <NavbarSearch
-                searchText={searchText}
-                setSearchText={setSearchText}
+            <NavbarBack
+                title="Select Location"
                 onMenuPress={() => console.log("Menu opened")}
                 onNotificationPress={() => console.log("Notifications clicked")}
-                navigation={navigation}
-                onSubmitEditing={() => searchLocation(searchText)} // Add the search functionality
             />
 
             {/* Map View */}
             <MapView
                 style={styles.map}
                 region={region}
-                onRegionChangeComplete={(newRegion) => setRegion(newRegion)}
+                onRegionChangeComplete={(newRegion) => {
+                    setRegion(newRegion);
+                    fetchAddress(newRegion.latitude, newRegion.longitude);
+                }}
             >
                 <UrlTile
                     urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -234,7 +231,7 @@ const styles = StyleSheet.create({
     submitButton: {
         marginHorizontal: 20,
         marginVertical: 20,
-        backgroundColor: "#007BFF",
+        backgroundColor: "#0056b3",
         paddingVertical: 15,
         borderRadius: 10,
         alignItems: "center",

@@ -9,11 +9,7 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk",
-        "distribution": "store", 
-        "releaseChannel": "default",
-        "release": {
-          "workflow": "managed"
-        }
+        "releaseChannel": "default"
       }
     },
     "preview": {
@@ -25,7 +21,8 @@
     "production": {
       "autoIncrement": true,
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "distribution": "store"
       }
     }
   },

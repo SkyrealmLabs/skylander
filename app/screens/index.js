@@ -8,5 +8,6 @@ export { default as RegisterLocationScreen } from "./RegisterLocationScreen";
 export { default as AddLocationDetailsScreen } from "./AddLocationDetailsScreen";
 export { default as AddLocationCoordinateScreen } from "./AddLocationCoordinateScreen";
 export { default as VideoRecorderScreen} from "./VideoRecorderScreen";
+export { default as EditProfileScreen } from "./EditProfileScreen";
 
 // AIzaSyAnvHjsIUz8QMRjsJ0EpvxtN9XFHkjq2TE

@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, StyleSheet, Button, Text, SafeAreaView, PermissionsAndroid } from 'react-native';
-import { Camera, CameraView } from 'expo-camera';
+import Camera from 'expo-camera';
 import Video from 'expo-av';
 import shareAsync from 'expo-sharing';
 import * as MediaLibrary from 'expo-media-library';
@@ -89,11 +89,11 @@ export default function VideoRecorderScreen({ navigation }) {
     }
 
     return (
-        <CameraView style={styles.container} ref={cameraRef}>
+        <Camera style={styles.container} ref={cameraRef}>
             <View style={styles.buttonContainer}>
                 <Button title={isRecording ? 'STOP' : 'START'} onPress={isRecording ? stopRecording : startRecording} />
             </View>
-        </CameraView>
+        </Camera>
     );
 }
 

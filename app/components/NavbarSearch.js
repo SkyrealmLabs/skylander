@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     paddingHorizontal: 20,
     paddingVertical: 20,
-    height: 90,
+    height: 100,
     backgroundColor: "#fff",
     elevation: 2, // Shadow for Android
     shadowColor: "#000", // Shadow for iOS

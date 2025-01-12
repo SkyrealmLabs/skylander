@@ -1,47 +1,95 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  TextInput,
-  SafeAreaView
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import NavbarSearch from "../components/NavbarSearch";
+import { API_BASE_URL } from "../core/config";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const GET_LOCATIONS_API_URL = API_BASE_URL + "api/location/getLocationByUserId";
 
 const RegisterLocationScreen = ({ navigation }) => {
   const [searchText, setSearchText] = useState("");
+  const [pendingLocations, setPendingLocations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState(null);
 
-  const registeredLocations = [
-    {
-      id: "1",
-      title: "Near Home Town",
-      address: "Persiaran Putra 9, Bandar Baru Putra, 31400 Ipoh, Perak",
-      coordinates: "4.662944, 101.143673",
-    },
-    {
-      id: "2",
-      title: "My Home",
-      address: "Persiaran Permai Sentosa, Seri Kembangan, 43300 Petaling, Selangor",
-      coordinates: "2.981566, 101.667885",
-    },
-  ];
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserData(); // Fetch data when the screen is focused
+    }, [])
+  );
+
+  const fetchUserData = async () => {
+    try {
+      const userDataString = await AsyncStorage.getItem("user");
+      if (userDataString) {
+        const user = JSON.parse(userDataString); // Parse JSON string to object
+        setUserData(user); // Set user data state
+        await fetchLocations(user.id); // Pass userID to fetch locations
+      } else {
+        // If no user data found, navigate to login
+        navigation.navigate("LoginScreen");
+      }
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+      // Navigate to login in case of error
+      navigation.navigate("LoginScreen");
+    }
+  };
+
+  const fetchLocations = async (userID) => {
+    try {
+      const response = await fetch(GET_LOCATIONS_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userID }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Filter pending locations
+        const pending = data.data.filter(
+          (location) => location.status === "pending"
+        );
+        setPendingLocations(pending);
+      }
+    } catch (error) {
+      Alert.alert("Error", "An error occurred while fetching locations");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const renderLocationItem = ({ item }) => (
     <View style={styles.locationItem}>
       <Ionicons name="location-outline" size={24} color="#083A75" />
       <View style={styles.locationDetails}>
-        <Text style={styles.locationTitle}>{item.title}</Text>
-        <Text style={styles.locationAddress}>{item.address}</Text>
-        <Text style={styles.locationCoordinates}>{item.coordinates}</Text>
+        <Text style={styles.locationAddress}>{item.locationAddress}</Text>
+        <Text style={styles.locationCoordinates}>
+          {item.latitude}, {item.longitude}
+        </Text>
       </View>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Back Button and Search Bar */}
       <NavbarSearch
         searchText={searchText}
@@ -53,21 +101,31 @@ const RegisterLocationScreen = ({ navigation }) => {
 
       {/* Actions */}
       <View style={styles.actionContainer}>
-        <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate("AddLocationCoordinateScreen")}>
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => navigation.navigate("AddLocationCoordinateScreen")}
+        >
           <Ionicons name="locate-outline" size={24} color="#083A75" />
           <Text style={styles.actionText}>Use current location</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Registered Locations Section */}
-      <Text style={styles.sectionHeader}>Pending registered location</Text>
-      <FlatList
-        data={registeredLocations}
-        renderItem={renderLocationItem}
-        keyExtractor={(item) => item.id}
-        style={styles.locationList}
-      />
-    </SafeAreaView>
+      {/* Pending Locations Section */}
+      <Text style={styles.sectionHeader}>Pending registered locations</Text>
+      {loading ? (
+        <Text style={styles.loadingText}>Loading...</Text>
+      ) : (
+        <FlatList
+          data={pendingLocations}
+          renderItem={renderLocationItem}
+          keyExtractor={(item) => item.id.toString()}
+          style={styles.locationList}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No pending locations found.</Text>
+          }
+        />
+      )}
+    </View>
   );
 };
 
@@ -76,39 +134,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f9f9f9",
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
-  },
-  backButton: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    backgroundColor: "#f3f3f3",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 16,
-    color: "#333",
-  },
   actionContainer: {
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
-    display: "flex",
-    gap: 20
   },
   actionButton: {
     flexDirection: "row",
     alignItems: "center",
-    // marginBottom: 16,
     marginVertical: 5,
-    marginHorizontal: 8
+    marginHorizontal: 8,
   },
   actionText: {
     marginLeft: 8,
@@ -125,6 +160,7 @@ const styles = StyleSheet.create({
   locationList: {
     flex: 1,
     paddingHorizontal: 16,
+    paddingTop: 20,
   },
   locationItem: {
     flexDirection: "row",
@@ -150,12 +186,23 @@ const styles = StyleSheet.create({
   },
   locationAddress: {
     fontSize: 14,
-    color: "#666",
+    color: "#000",
     marginBottom: 4,
+    fontWeight: "bold",
   },
   locationCoordinates: {
     fontSize: 12,
-    color: "#888",
+    color: "#4287f5",
+  },
+  loadingText: {
+    padding: 16,
+    textAlign: "center",
+    color: "#666",
+  },
+  emptyText: {
+    padding: 16,
+    textAlign: "center",
+    color: "#666",
   },
 });
 

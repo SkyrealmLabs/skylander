@@ -1,16 +1,62 @@
-import React, { useState } from "react";
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, SafeAreaView } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import NavbarSearch from "../components/NavbarSearch";
+import { API_BASE_URL } from "../core/config";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const GET_LOCATIONS_API_URL = API_BASE_URL + "api/location/getLocationByUserId";
 
 export default function LocationStatusScreen({ navigation }) {
   const [searchText, setSearchText] = useState("");
+  const [locations, setLocations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState(null);
 
-  // Sample data
-  const locations = [
-    { id: "1", name: "eMooVit Office", coordinates: "2.909884, 101.655099", status: "Pending" },
-    { id: "2", name: "Obama Oval", coordinates: "2.909271, 101.655418", status: "Approved" },
-    { id: "3", name: "Rekascape", coordinates: "2.908619, 101.656735", status: "Rejected" },
-  ];
+  // Fetch locations from the API
+  useEffect(() => {
+    const fetchUserDataAndLocations = async () => {
+      try {
+        // Get user data from AsyncStorage
+        const userDataString = await AsyncStorage.getItem('user');
+        if (!userDataString) {
+          navigation.navigate("LoginScreen");
+          return;
+        }
+
+        const user = JSON.parse(userDataString);
+        setUserData(user);
+
+        // Fetch locations
+        const response = await fetch(GET_LOCATIONS_API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userID: user.id }), // Pass userID in the request body
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // Transform API data to match UI structure
+          const transformedLocations = data.data.map((location) => ({
+            id: location.id.toString(),
+            name: location.locationAddress,
+            coordinates: `${location.latitude}, ${location.longitude}`,
+            status: location.status,
+          }));
+          setLocations(transformedLocations);
+        }
+      } catch (error) {
+        Alert.alert("Error", "An error occurred while fetching locations");
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserDataAndLocations();
+  }, []);
 
   // Filter locations based on search text
   const filteredLocations = locations.filter((location) =>
@@ -27,9 +73,15 @@ export default function LocationStatusScreen({ navigation }) {
     </TouchableOpacity>
   );
 
+  // Define the ListEmptyComponent
+  const renderEmptyComponent = () => (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyText}>No locations found</Text>
+    </View>
+  );
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Pass searchText and setSearchText to NavbarSearch */}
+    <View style={styles.container}>
       <NavbarSearch
         searchText={searchText}
         setSearchText={setSearchText}
@@ -38,14 +90,18 @@ export default function LocationStatusScreen({ navigation }) {
         navigation={navigation}
       />
 
-      {/* List of locations */}
-      <FlatList
-        data={filteredLocations}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-      />
-    </SafeAreaView>
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />
+      ) : (
+        <FlatList
+          data={filteredLocations}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={filteredLocations.length === 0 ? styles.flatListContainer : styles.list}
+          ListEmptyComponent={renderEmptyComponent}
+        />
+      )}
+    </View>
   );
 }
 
@@ -55,6 +111,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F5F5",
   },
   list: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  flatListContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
@@ -76,10 +139,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     color: "#333",
+    width: 250,
   },
   coordinates: {
     fontSize: 14,
-    color: "#555",
+    color: "#4287f5",
     marginTop: 4,
   },
   status: {
@@ -95,5 +159,19 @@ const styles = StyleSheet.create({
   },
   rejected: {
     color: "red",
+  },
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyText: {
+    fontSize: 18,
+    color: "#777",
   },
 });

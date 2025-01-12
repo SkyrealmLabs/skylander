@@ -25,7 +25,14 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.mantera.SkyLander",
-      "permissions": ["location, ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "RECORD_AUDIO", "CAMERA", "CAMERA_ROLL", "MICROPHONE"]
+      "permissions": [
+        "location, ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "RECORD_AUDIO",
+        "CAMERA",
+        "CAMERA_ROLL",
+        "MICROPHONE"
+      ]
     },
     "web": {
       "favicon": "./assets/app.png"
@@ -43,7 +50,8 @@
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
           "recordAudioAndroid": true
         }
-      ]
+      ],
+      "expo-video"
     ]
   }
 }

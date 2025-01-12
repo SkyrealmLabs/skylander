@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
         alignItems: "flex-end", // Moves icons to the bottom
         paddingHorizontal: 20,
         paddingBottom: 15,
-        height: 80, // Adjust height as needed
+        height: 100, // Adjust height as needed
         backgroundColor: "#fff",
         elevation: 2, // Shadow for Android
         shadowColor: "#000", // Shadow for iOS
