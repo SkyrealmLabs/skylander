@@ -32,7 +32,13 @@
         "CAMERA",
         "CAMERA_ROLL",
         "MICROPHONE"
-      ]
+      ],
+      "networkSecurityConfig": {
+        "cleartextTrafficPermitted": true
+      },
+      "config": {
+        "cleartext": true
+      }
     },
     "web": {
       "favicon": "./assets/app.png"
@@ -40,7 +46,8 @@
     "extra": {
       "eas": {
         "projectId": "5d947cb0-ecf6-4da0-ae9d-22a82714eab2"
-      }
+      },
+      "apiUrl": "http://52.221.215.20:3000"
     },
     "plugins": [
       [
