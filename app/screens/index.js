@@ -12,5 +12,6 @@ export { default as EditProfileScreen } from "./EditProfileScreen";
 export { default as AdminHomeScreen } from "./AdminHomeScreen";
 export { default as AdminLocationListScreen } from "./AdminLocationListScreen";
 export { default as AdminLocationDetailsScreen} from "./AdminLocationDetailsScreen";
+export { default as AdminArucoScannerScreen } from "./AdminArucoScannerScreen";
 
 // AIzaSyAnvHjsIUz8QMRjsJ0EpvxtN9XFHkjq2TE

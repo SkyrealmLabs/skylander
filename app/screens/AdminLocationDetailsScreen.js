@@ -7,9 +7,6 @@ import { useNavigation } from "@react-navigation/native";
 import { Video } from "expo-av";
 import { API_BASE_URL } from "../core/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as ImagePicker from "expo-image-picker";
-import * as FileSystem from "expo-file-system";
-import { CameraView, useCameraPermissions } from 'expo-camera';
 
 const GET_LOCATION_DETAIL_BY_ID_API_URL = API_BASE_URL + "api/location/getLocationDetailsById";
 
@@ -23,7 +20,6 @@ const AdminLocationDetailsScreen = () => {
     const [arucoId, setArucoId] = useState("");
     const route = useRoute();
     const { locationID } = route.params;
-    const [permission, requestPermission] = useCameraPermissions();
 
     useEffect(() => {
 
@@ -80,6 +76,12 @@ const AdminLocationDetailsScreen = () => {
         fetchUserDataAndLocations();
     }, [navigation, locationID]);
 
+    const openCamera = () => {
+        setReviewModalVisible(false);
+        setArucoModalVisible(false);
+        navigation.navigate("AdminArucoScannerScreen");
+    }
+
 
     if (loading) {
         return (
@@ -95,31 +97,6 @@ const AdminLocationDetailsScreen = () => {
                 <Text>No location details found.</Text>
             </View>
         );
-    }
-
-    const takePhoto = () => {
-        console.log(permission)
-        if (!permission.granted) {
-            return <View />;
-        }
-
-        if (!permission.granted) {
-            return (
-                <View style={styles.container}>
-                    <Text style={styles.message}>We need your permission to show the camera</Text>
-                    <Button onPress={requestPermission} title="grant permission" />
-                </View>
-            );
-        } else {
-
-            return (
-                <View style={styles.container}>
-                    <CameraView style={styles.camera} facing="back" />
-                </View>
-            );
-
-        }
-
     }
 
     return (
@@ -234,8 +211,8 @@ const AdminLocationDetailsScreen = () => {
                                 onChangeText={setArucoId}
                             />
 
-
-                            <TouchableOpacity onPress={takePhoto} style={styles.iconButton}>
+                            {/* navigate to camera */}
+                            <TouchableOpacity onPress={openCamera} style={styles.iconButton}>
                                 <Ionicons name="camera" size={24} color="gray" />
                             </TouchableOpacity>
                         </View>
