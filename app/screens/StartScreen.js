@@ -6,6 +6,7 @@ import Button from "../components/Button";
 import Paragraph from "../components/Paragraph";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from "@react-navigation/native";
+import { ROLE } from "../core/config";
 
 export default function StartScreen({ navigation }) {
 
@@ -15,7 +16,12 @@ export default function StartScreen({ navigation }) {
         const userDataString = await AsyncStorage.getItem('user');
         if (userDataString) {
           const user = JSON.parse(userDataString);
-          navigation.navigate("HomeScreen");
+          if (user.role === ROLE.ADMIN) {
+            navigation.navigate("AdminHomeScreen");
+          }
+          else if (user.role === ROLE.CLIENT) {
+            navigation.navigate("HomeScreen");
+          }
         } else {
           // If no user data found, navigate to login
           navigation.navigate("LoginScreen");
@@ -31,7 +37,7 @@ export default function StartScreen({ navigation }) {
 
     fetchUserData();
   }, [navigation]);
-  
+
   return (
     <Background>
       <Logo />

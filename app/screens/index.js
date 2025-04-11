@@ -9,5 +9,8 @@ export { default as AddLocationDetailsScreen } from "./AddLocationDetailsScreen"
 export { default as AddLocationCoordinateScreen } from "./AddLocationCoordinateScreen";
 export { default as VideoRecorderScreen} from "./VideoRecorderScreen";
 export { default as EditProfileScreen } from "./EditProfileScreen";
+export { default as AdminHomeScreen } from "./AdminHomeScreen";
+export { default as AdminLocationListScreen } from "./AdminLocationListScreen";
+export { default as AdminLocationDetailsScreen} from "./AdminLocationDetailsScreen";
 
 // AIzaSyAnvHjsIUz8QMRjsJ0EpvxtN9XFHkjq2TE

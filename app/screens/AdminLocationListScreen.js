@@ -3,10 +3,11 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, 
 import NavbarSearch from "../components/NavbarSearch";
 import { API_BASE_URL } from "../core/config";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from "@expo/vector-icons";
 
-const GET_LOCATIONS_BY_USER_API_URL = API_BASE_URL + "api/location/getLocationByUserId";
+const GET_LOCATIONS_API_URL = API_BASE_URL + "api/location/get";
 
-export default function LocationStatusScreen({ navigation }) {
+export default function AdminLocationListScreen({ navigation }) {
   const [searchText, setSearchText] = useState("");
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,12 +28,11 @@ export default function LocationStatusScreen({ navigation }) {
         setUserData(user);
 
         // Fetch locations
-        const response = await fetch(GET_LOCATIONS_BY_USER_API_URL, {
-          method: "POST",
+        const response = await fetch(GET_LOCATIONS_API_URL, {
+          method: "GET",
           headers: {
             "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userID: user.id }), // Pass userID in the request body
+          } // Pass userID in the request body
         });
 
         const data = await response.json();
@@ -42,8 +42,10 @@ export default function LocationStatusScreen({ navigation }) {
           const transformedLocations = data.data.map((location) => ({
             id: location.id.toString(),
             name: location.locationAddress,
-            coordinates: `${location.latitude}, ${location.longitude}`,
+            enrolledBy: `${location.latitude}, ${location.longitude}`,
             status: location.status,
+            username: location.name,
+            userid: location.userid
           }));
           setLocations(transformedLocations);
         }
@@ -64,12 +66,17 @@ export default function LocationStatusScreen({ navigation }) {
   );
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.card}>
+    <TouchableOpacity 
+      style={styles.card}
+      onPress={() =>
+        navigation.navigate("AdminLocationDetailsScreen", { locationID: item.id })
+      }>
       <View>
         <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.coordinates}>{item.coordinates}</Text>
+        <Text style={styles.enrolledBy}>Enrolled by {item.username}</Text>
+        <Text style={[styles.status, styles[item.status.toLowerCase()]]}>{item.status}</Text>
       </View>
-      <Text style={[styles.status, styles[item.status.toLowerCase()]]}>{item.status}</Text>
+      <Ionicons name="chevron-forward" size={20} color="#333" />
     </TouchableOpacity>
   );
 
@@ -141,7 +148,7 @@ const styles = StyleSheet.create({
     color: "#333",
     width: 250,
   },
-  coordinates: {
+  enrolledBy: {
     fontSize: 14,
     color: "#4287f5",
     marginTop: 4,
@@ -150,15 +157,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
     textTransform: "capitalize",
+    alignSelf: 'flex-start',
+    padding: 3,
+    borderRadius: 5,
+    marginTop: 5
   },
   pending: {
-    color: "orange",
+    color: "#ebb900",
+    backgroundColor: '#ffefb3'
   },
   approved: {
-    color: "green",
+    color: "#02991d",
+    backgroundColor: '#a2fcb2'
   },
   rejected: {
-    color: "red",
+    color: "#ff0600",
+    backgroundColor: '#ffb2b0'
   },
   loader: {
     flex: 1,

@@ -10,7 +10,7 @@ import BackButton from "../components/BackButton";
 import { theme } from "../core/theme";
 import { emailValidator } from "../helpers/emailValidator";
 import { passwordValidator } from "../helpers/passwordValidator";
-import { API_BASE_URL } from "../core/config";
+import { API_BASE_URL, ROLE } from "../core/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const LOGIN_API_URL = API_BASE_URL + "api/login";
@@ -24,9 +24,15 @@ export default function LoginScreen({ navigation }) {
     const fetchUserData = async () => {
       try {
         const userDataString = await AsyncStorage.getItem('user');
+        console.log("🚀 ~ fetchUserData ~ userDataString:", userDataString)
         if (userDataString) {
           const user = JSON.parse(userDataString);
-          navigation.navigate("HomeScreen");
+          if (user.role === ROLE.ADMIN) {
+            navigation.navigate("AdminHomeScreen");
+          }
+          else if (user.role === ROLE.CLIENT) {
+            navigation.navigate("HomeScreen");
+          }
         } else {
           // If no user data found, navigate to login
           navigation.navigate("LoginScreen");
@@ -61,22 +67,30 @@ export default function LoginScreen({ navigation }) {
         },
         body: JSON.stringify({
           email: email.value,
-          password: password.value,
-          role: "user"
+          password: password.value
         }),
       });
 
       const result = await response.json();
-      console.log("🚀 ~ onLoginPressed ~ result:", result)
 
       if (response.ok) {
         await AsyncStorage.setItem("token", result.token); // Store token
         await AsyncStorage.setItem("user", JSON.stringify(result.user)); // Store user data
+        
+        console.log("🚀 ~ onLoginPressed ~ result.user:", result.user)
+        if (result.user.role === ROLE.ADMIN) {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "AdminHomeScreen" }],
+          });
+        }
+        else if (result.user.role === ROLE.CLIENT) {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "HomeScreen" }],
+          });
+        }
 
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "HomeScreen" }],
-        });
       } else {
         Alert.alert("Login Failed", result.message || "Invalid credentials.");
       }

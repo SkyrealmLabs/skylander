@@ -16,7 +16,10 @@ import {
   AddLocationDetailsScreen,
   AddLocationCoordinateScreen,
   VideoRecorderScreen,
-  EditProfileScreen
+  EditProfileScreen,
+  AdminHomeScreen,
+  AdminLocationListScreen,
+  AdminLocationDetailsScreen
 } from "./app/screens";
 
 const Stack = createStackNavigator();
@@ -42,6 +45,9 @@ export default function App() {
           <Stack.Screen name="VideoRecorderScreen" component={VideoRecorderScreen} />
           <Stack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} />
           <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
+          <Stack.Screen name="AdminHomeScreen" component={AdminHomeScreen} />
+          <Stack.Screen name="AdminLocationListScreen" component={AdminLocationListScreen} />
+          <Stack.Screen name="AdminLocationDetailsScreen" component={AdminLocationDetailsScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>
