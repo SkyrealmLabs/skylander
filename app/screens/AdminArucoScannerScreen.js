@@ -1,8 +1,13 @@
-import { CameraView, useCameraPermissions } from 'expo-camera';
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { Camera, CameraView, useCameraPermissions } from 'expo-camera';
+import { Button, StyleSheet, Text, View, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
+import { useRef, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function AdminArucoScannerScreen() {
   const [permission, requestPermission] = useCameraPermissions();
+  const cameraRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [result, setResult] = useState(null);
 
   if (!permission) {
     return <View />;
@@ -11,52 +16,63 @@ export default function AdminArucoScannerScreen() {
   if (!permission.granted) {
     return (
       <View style={styles.container}>
-        <Text style={styles.message}>We need your permission to show the camera</Text>
-        <Button onPress={requestPermission} title="grant permission" />
+        <Text style={styles.message}>We need your permission to use the camera</Text>
+        <Button onPress={requestPermission} title="Grant Permission" />
       </View>
     );
   }
 
+  const captureAndSend = async () => {
+    if (cameraRef.current) {
+      setUploading(true);
+      const photo = await cameraRef.current.takePictureAsync({ base64: true });
+      console.lig(photo)
+      try {
+        const response = await fetch('http://192.168.0.7:5001/detect', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            image: photo.base64
+          }),
+        });
+
+        const data = await response.json();
+        setResult(data);
+      } catch (error) {
+        console.error(error);
+        setResult({ error: 'Failed to connect to server.' });
+      }
+
+      setUploading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <CameraView style={styles.camera} facing="back">
-        {/* Dimmed overlay */}
-        <View style={styles.overlay}>
-          <View style={styles.topOverlay} />
-          <View style={styles.middleRow}>
-            <View style={styles.sideOverlay} />
-            <View style={styles.scannerFrame}>
-              {/* Corner Markers */}
-              {/* Top Left */}
-              <View style={[styles.corner, styles.topLeft, styles.horizontal]} />
-              <View style={[styles.corner, styles.topLeft, styles.vertical]} />
-              {/* Top Right */}
-              <View style={[styles.corner, styles.topRight, styles.horizontal]} />
-              <View style={[styles.corner, styles.topRight, styles.vertical]} />
-              {/* Bottom Left */}
-              <View style={[styles.corner, styles.bottomLeft, styles.horizontal]} />
-              <View style={[styles.corner, styles.bottomLeft, styles.vertical]} />
-              {/* Bottom Right */}
-              <View style={[styles.corner, styles.bottomRight, styles.horizontal]} />
-              <View style={[styles.corner, styles.bottomRight, styles.vertical]} />
-            </View>
-            <View style={styles.sideOverlay} />
+      <CameraView ref={cameraRef} style={styles.camera} facing="back" />
+
+      <View style={styles.overlay}>
+        <View style={styles.captureButtonContainer}>
+          <View style={styles.captureOuterCircle}>
+            <TouchableOpacity onPress={captureAndSend} style={styles.captureInnerCircle} />
           </View>
-          <View style={styles.bottomOverlay} />
         </View>
-      </CameraView>
+        {uploading && <ActivityIndicator size="large" color="lime" />}
+        {result && (
+          <Text style={styles.resultText}>
+            {result.error ? result.error : `Detected Markers: ${result.markers.join(', ')}`}
+          </Text>
+        )}
+      </View>
     </View>
   );
 }
 
-const frameSize = 250;
-const cornerLength = 40;
-const cornerThickness = 4;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
   },
   message: {
     textAlign: 'center',
@@ -66,55 +82,37 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    bottom: 30,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
   },
-  topOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  resultText: {
+    marginTop: 20,
+    color: 'white',
+    fontSize: 16,
   },
-  middleRow: {
-    flexDirection: 'row',
+  captureButtonContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'absolute',
+    bottom: 30,
+    alignSelf: 'center',
   },
-  sideOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  bottomOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  scannerFrame: {
-    width: frameSize,
-    height: frameSize,
+  captureOuterCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 4,
+    borderColor: 'white',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  corner: {
-    position: 'absolute',
-    backgroundColor: 'lime',
-  },
-  horizontal: {
-    width: cornerLength,
-    height: cornerThickness,
-  },
-  vertical: {
-    width: cornerThickness,
-    height: cornerLength,
-  },
-  topLeft: {
-    top: 0,
-    left: 0,
-  },
-  topRight: {
-    top: 0,
-    right: 0,
-  },
-  bottomLeft: {
-    bottom: 0,
-    left: 0,
-  },
-  bottomRight: {
-    bottom: 0,
-    right: 0,
+  captureInnerCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'white',
   },
 });
