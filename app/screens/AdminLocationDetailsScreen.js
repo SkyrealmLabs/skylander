@@ -8,6 +8,7 @@ import { Video } from "expo-av";
 import { API_BASE_URL } from "../core/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 const GET_LOCATION_DETAIL_BY_ID_API_URL = API_BASE_URL + "api/location/getLocationDetailsById";
 
@@ -90,12 +91,46 @@ const AdminLocationDetailsScreen = () => {
         const result = await ImagePicker.launchCameraAsync({
             mediaTypes: "images",
             allowsEditing: true,
-            quality: 1,
+            base64: true,
         });
 
         if (!result.canceled) {
-            const imageBase64 = result.assets[0].base64;
-            console.log(imageBase64);
+            const resized = await ImageManipulator.manipulateAsync(
+                result.assets[0].uri,
+                [{ resize: { width: 300 } }],   // Resize width to 300px, keeping aspect ratio
+                { compress: 0.2, base64: true } // Compress more and return base64
+            );
+
+            const imageBase64 = `data:image/jpeg;base64,${resized.base64}`;
+
+            try {
+                const response = await fetch('https://aruco.zulsyah.com/detect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        image: imageBase64,
+                    }),
+                });
+
+                const text = await response.text();
+                console.log('Response Text:', text);
+
+                if (!response.ok) {
+                    throw new Error(`Server error ${response.status}: ${text}`);
+                }
+
+                const data = JSON.parse(text);
+
+                // 👉 Update the arucoId state here
+                setArucoId(data.markers[0].toString());
+
+            } catch (error) {
+
+                console.error(error);
+
+            }
         }
 
     };
