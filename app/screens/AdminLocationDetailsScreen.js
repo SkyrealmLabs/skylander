@@ -7,6 +7,7 @@ import { useNavigation } from "@react-navigation/native";
 import { Video } from "expo-av";
 import { API_BASE_URL } from "../core/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as ImagePicker from 'expo-image-picker';
 
 const GET_LOCATION_DETAIL_BY_ID_API_URL = API_BASE_URL + "api/location/getLocationDetailsById";
 
@@ -76,12 +77,28 @@ const AdminLocationDetailsScreen = () => {
         fetchUserDataAndLocations();
     }, [navigation, locationID]);
 
-    const openCamera = () => {
-        setReviewModalVisible(false);
-        setArucoModalVisible(false);
-        navigation.navigate("AdminArucoScannerScreen");
-    }
+    const openCamera = async () => {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== "granted") {
+            Alert.alert(
+                "Permission required",
+                "Camera permission is required to use this feature."
+            );
+            return;
+        }
 
+        const result = await ImagePicker.launchCameraAsync({
+            mediaTypes: "images",
+            allowsEditing: true,
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            const imageBase64 = result.assets[0].base64;
+            console.log(imageBase64);
+        }
+
+    };
 
     if (loading) {
         return (
